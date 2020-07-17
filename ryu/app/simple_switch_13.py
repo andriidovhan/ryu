@@ -37,9 +37,13 @@ class SimpleSwitch13(app_manager.RyuApp):
         parser = datapath.ofproto_parser
 
         match = parser.OFPMatch()
-        push_vxlan = parser.NoviActionPushVxlan('00:00:00:00:00:01', '00:00:00:00:00:02', '192.168.0.1', '192.168.0.2', 3000, 4000)
+        # push_vxlan = parser.NoviActionPushVxlanShort()
+        # push_vxlan = parser.NoviActionPushVxlan('00:00:00:00:00:01', '00:00:00:00:00:02', '192.168.0.1', '192.168.0.2', 3000, 4000)
+        copy_field = parser.NoviActionCopyField(48, 0, 0, 'eth_src', 'eth_dst', 4, 4)
 
-        actions = [push_vxlan]
+        pop_vxlan = parser.NoviActionPopVxlan()
+
+        actions = [copy_field]
 
         self.add_flow(datapath, 0, match, actions)
 

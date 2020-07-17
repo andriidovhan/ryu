@@ -125,7 +125,7 @@ def generate(ofp_name, ofpp_name):
         @classmethod
         def parser(cls, buf):
             size = struct.calcsize(cls._fmt_str)
-            tunnel_type, flag =  struct.unpack(
+            tunnel_type, flag = struct.unpack(
                 cls._fmt_str, buf[:size])
             assert tunnel_type == cls.NOVI_TUNNEL_TYPE_VXLAN
             if flag:
@@ -183,6 +183,66 @@ def generate(ofp_name, ofpp_name):
             except Exception as e:
                 print(e)
             return buf
+
+
+    class NoviActionCopyField(NoviAction):
+        _fmt_str_20 = '>HHH2x12s'
+        _fmt_str_24 = '>HHH2x16s'
+        NOVI_ACTION_COPY_FIELD = 0x0005
+        _subtype = NOVI_ACTION_COPY_FIELD
+
+        def __init__(self, n_bits, src_offset, dst_offset, src, dst, src_size, dst_size):
+            super(NoviActionCopyField, self).__init__()
+            self.n_bits = n_bits
+            self.src_offset = src_offset
+            self.dst_offset = dst_offset
+            self.src = src
+            self.dst = dst
+            self.src_size = src_size
+            self.dst_size = dst_size
+
+            self.len = 0 # 32/36/40 depends on the type of src and dst
+
+        @classmethod
+        def parser(cls, buf):
+            try:
+                if len(buf) == 20:
+                    n_bits, src_offset, dst_offset, oxms = struct.unpack(cls._fmt_str_20, buf)
+                elif len(buf) == 24:
+                    n_bits, src_offset, dst_offset, oxms = struct.unpack(cls._fmt_str_24, buf)
+                else:
+                    raise Exception("Unknown buffer")
+                (n, src_size) = ofp.oxm_parse_header(oxms, 0)
+                src = ofp.oxm_to_user_header(n)
+                oxms = oxms[src_size:]
+                (n, dst_size) = ofp.oxm_parse_header(oxms, 0)
+                dst = ofp.oxm_to_user_header(n)
+
+                return cls(n_bits, src_offset, dst_offset, src, dst, src_size, dst_size)
+            except Exception as e:
+                print(e)
+
+        def serialize_body(self):
+            src_header = bytearray()
+            dst_header = bytearray()
+            n = ofp.oxm_from_user_header(self.src)
+            ofp.oxm_serialize_header(n, src_header, 0)
+            n = ofp.oxm_from_user_header(self.dst)
+            ofp.oxm_serialize_header(n, dst_header, 0)
+            src_header.extend(dst_header)
+            if len(src_header) < 12:
+                src_header.extend(bytearray(4))
+            sz = struct.calcsize(self._fmt_str_20)
+            buf = bytearray(sz)
+            try:
+                struct.pack_into(self._fmt_str_20, buf, 0, self.n_bits, self.src_offset, self.dst_offset, src_header)
+
+            except Exception as e:
+                print(e)
+            self.len = 12 + len(buf)
+            return buf
+
+
     def add_attr(k, v):
         v.__module__ = ofpp.__name__  # Necessary for stringify stuff
         setattr(ofpp, k, v)
@@ -193,7 +253,8 @@ def generate(ofp_name, ofpp_name):
     classes = [
         ('NoviActionPushVxlanShort', True),
         ('NoviActionPopVxlan', True),
-        ('NoviActionPushVxlan', False)
+        ('NoviActionPushVxlan', False),
+        ('NoviActionCopyField', True)
     ]
     vars = locals()
     for name, register in classes:
