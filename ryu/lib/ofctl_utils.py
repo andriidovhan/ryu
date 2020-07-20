@@ -132,6 +132,34 @@ def to_action(dic, ofp, parser, action_type, util):
         else:
             # OpenFlow 1.4 or earlier
             return None
+    elif action_type == 'NOVI_POP_VXLAN':
+        if hasattr(parser, 'NoviActionPopVxlan'):
+            return parser.NoviActionPopVxlan()
+        else:
+            return None
+
+    elif action_type == 'NOVI_PUSH_VXLAN':
+        if hasattr(parser, 'NoviActionPushVxlan'):
+            del dic['type']
+            if not dic:
+                return parser.NoviActionPushVxlanShort()
+            return parser.NoviActionPushVxlan(**dic)
+        else:
+            return None
+
+    elif action_type == 'NOVI_COPY_FIELD':
+        if hasattr(parser, 'NoviActionCopyField'):
+            del dic['type']
+            return parser.NoviActionCopyField(**dic)
+        else:
+            return None
+    elif action_type == 'NOVI_SWAP_FIELD':
+        if hasattr(parser, 'NoviActionSwapField'):
+            del dic['type']
+            return parser.NoviActionSwapField(**dic)
+        else:
+            return None
+
 
     elif action_type == EXPERIMENTER:
         experimenter = str_to_int(dic.get('experimenter'))

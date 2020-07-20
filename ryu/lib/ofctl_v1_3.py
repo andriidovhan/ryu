@@ -137,7 +137,12 @@ def action_to_str(act):
             except Exception:
                 LOG.debug('Error parsing NX_ACTION(%s)',
                           act.__class__.__name__, exc_info=True)
-
+        elif act.experimenter == ofproto_common.NOVI_EXPERIMENTER_ID:
+            try:
+                return act.action_to_str()
+            except Exception:
+                LOG.debug('Error parsing Novi Action(%s)',
+                          act.__class__.__name__, exc_info=True)
         data_str = base64.b64encode(act.data)
         buf = 'EXPERIMENTER: {experimenter:%s, data:%s}' % \
             (act.experimenter, data_str.decode('utf-8'))

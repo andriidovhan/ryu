@@ -14,16 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-
 import struct
 
-from ryu import utils
 from ryu.lib import type_desc
-from ryu.ofproto import nicira_ext
-
 from ryu.ofproto import ofproto_common
-from ryu.lib.pack_utils import msg_pack_into
 
 
 def generate(ofp_name, ofpp_name):
@@ -96,6 +90,9 @@ def generate(ofp_name, ofpp_name):
             self.len = 16
 
 
+        def action_to_str(self):
+            return "NOVI_POP_VXLAN"
+
         @classmethod
         def parser(cls, buf):
             tunnel_type = struct.unpack(cls._fmt_str, buf)
@@ -121,6 +118,9 @@ def generate(ofp_name, ofpp_name):
         def __init__(self):
             super(NoviActionPushVxlanShort, self).__init__()
             self.len = 16
+
+        def action_to_str(self):
+                return "NOVI_PUSH_VXLAN"
 
         @classmethod
         def parser(cls, buf):
@@ -169,7 +169,11 @@ def generate(ofp_name, ofpp_name):
             ipv4_dst = type_desc.IPv4Addr.to_user(ipv4_dst_buff)
             return cls(eth_src, eth_dst, ipv4_src, ipv4_dst, udp_src, vni)
 
-
+        def action_to_str(self):
+            return "NOVI_PUSH_VXLAN: {'eth_src': %s, 'eth_dst': %s, " \
+                   "'ipv4_src': %s, 'ipv4_dst': %s, 'udp_src': %d, 'vni': %d}" % (self.eth_src, self.eth_dst,
+                                                                                  self.ipv4_src, self.ipv4_dst,
+                                                                                  self.udp_src, self.vni)
 
         def serialize_body(self):
             sz = struct.calcsize(self._fmt_str)
@@ -218,6 +222,11 @@ def generate(ofp_name, ofpp_name):
                 return cls(n_bits, src_offset, dst_offset, src, dst)
             except Exception as e:
                 print(e)
+
+        def action_to_str(self):
+            return "NOVI_COPY_FIELD: {'n_bits': %d, 'src_offset': %d, " \
+                   "'dst_offset': %d, 'src': %s, 'dst': %s}" % (self.n_bits, self.src_offset, self.dst_offset,
+                                                                self.src, self.dst)
 
         def serialize_body(self):
             src_header = bytearray()
@@ -273,6 +282,11 @@ def generate(ofp_name, ofpp_name):
                 return cls(n_bits, src_offset, dst_offset, src, dst)
             except Exception as e:
                 print(e)
+
+        def action_to_str(self):
+            return "NOVI_SWAP_FIELD: {'n_bits': %d, 'src_offset': %d, " \
+                   "'dst_offset': %d, 'src': %s, 'dst': %s}" % (self.n_bits, self.src_offset, self.dst_offset,
+                                                                self.src, self.dst)
 
         def serialize_body(self):
             src_header = bytearray()
