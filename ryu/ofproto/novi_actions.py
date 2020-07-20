@@ -190,15 +190,13 @@ def generate(ofp_name, ofpp_name):
         NOVI_ACTION_COPY_FIELD = 0x0005
         _subtype = NOVI_ACTION_COPY_FIELD
 
-        def __init__(self, n_bits, src_offset, dst_offset, src, dst, src_size, dst_size):
+        def __init__(self, n_bits, src_offset, dst_offset, src, dst):
             super(NoviActionCopyField, self).__init__()
             self.n_bits = n_bits
             self.src_offset = src_offset
             self.dst_offset = dst_offset
             self.src = src
             self.dst = dst
-            self.src_size = src_size
-            self.dst_size = dst_size
 
             self.len = 0 # 32/36/40 depends on the type of src and dst
 
@@ -217,7 +215,7 @@ def generate(ofp_name, ofpp_name):
                 (n, dst_size) = ofp.oxm_parse_header(oxms, 0)
                 dst = ofp.oxm_to_user_header(n)
 
-                return cls(n_bits, src_offset, dst_offset, src, dst, src_size, dst_size)
+                return cls(n_bits, src_offset, dst_offset, src, dst)
             except Exception as e:
                 print(e)
 
@@ -247,15 +245,13 @@ def generate(ofp_name, ofpp_name):
         NOVI_ACTION_SWAP_FIELD = 0x0009
         _subtype = NOVI_ACTION_SWAP_FIELD
 
-        def __init__(self, n_bits, src_offset, dst_offset, src, dst, src_size, dst_size):
+        def __init__(self, n_bits, src_offset, dst_offset, src, dst):
             super(NoviActionSwapField, self).__init__()
             self.n_bits = n_bits
             self.src_offset = src_offset
             self.dst_offset = dst_offset
             self.src = src
             self.dst = dst
-            self.src_size = src_size
-            self.dst_size = dst_size
 
             self.len = 0 # 32/36/40 depends on the type of src and dst
 
@@ -274,7 +270,7 @@ def generate(ofp_name, ofpp_name):
                 (n, dst_size) = ofp.oxm_parse_header(oxms, 0)
                 dst = ofp.oxm_to_user_header(n)
 
-                return cls(n_bits, src_offset, dst_offset, src, dst, src_size, dst_size)
+                return cls(n_bits, src_offset, dst_offset, src, dst)
             except Exception as e:
                 print(e)
 
