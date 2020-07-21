@@ -16,7 +16,7 @@
 
 import struct
 
-import utils
+from ryu import utils
 from ryu.lib import type_desc
 from ryu.ofproto import ofproto_common
 

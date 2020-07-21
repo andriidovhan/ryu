@@ -22,8 +22,18 @@ from ryu.ofproto import oxm_fields
 
 
 oxm_types = [
+    oxm_fields.NoviExperimenter('novi_udp_payload', 1, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_ip_payload', 2, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_mpls_payload', 3, type_desc.Int1),
     oxm_fields.NoviExperimenter('novi_hash_result', 4, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_eth_payload', 5, type_desc.Int1),
     oxm_fields.NoviExperimenter('novi_rx_timestamp', 6, type_desc.Int1),
     oxm_fields.NoviExperimenter('novi_tx_timestamp', 7, type_desc.Int1),
-    oxm_fields.NoviExperimenter('novi_packet_offset', 8, type_desc.Int1)
+    oxm_fields.NoviExperimenter('novi_packet_offset', 8, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_pppoe_code', 9, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_pppoe_sessionid', 10, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_ppp_protoid', 11, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_l2tp_packettype', 12, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_l2tp_tunnelid', 13, type_desc.Int1),
+    oxm_fields.NoviExperimenter('novi_l2tp_sessionid', 14, type_desc.Int1)
 ]
