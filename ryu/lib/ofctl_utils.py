@@ -159,8 +159,12 @@ def to_action(dic, ofp, parser, action_type, util):
             return parser.NoviActionSwapField(**dic)
         else:
             return None
-
-
+    elif action_type == 'NOVI_HASH_FIELD_SYM':
+        if hasattr(parser, 'NoviActionHashFieldSym'):
+            del dic['type']
+            return parser.NoviActionHashFieldSym(**dic)
+        else:
+            return None
     elif action_type == EXPERIMENTER:
         experimenter = str_to_int(dic.get('experimenter'))
         data_type = dic.get('data_type', 'ascii')

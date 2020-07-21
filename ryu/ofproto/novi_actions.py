@@ -16,6 +16,7 @@
 
 import struct
 
+import utils
 from ryu.lib import type_desc
 from ryu.ofproto import ofproto_common
 
@@ -308,6 +309,58 @@ def generate(ofp_name, ofpp_name):
             self.len = 12 + len(buf)
             return buf
 
+    class NoviActionHashFieldSym(NoviAction):
+        _fmt_str = '>B'
+        NOVI_ACTION_HASH_FIELDS_SYM = 0x0007
+        _subtype = NOVI_ACTION_HASH_FIELDS_SYM
+
+        def __init__(self, field_num, fields):
+            super(NoviActionHashFieldSym, self).__init__()
+            self.field_num = field_num
+            self.fields = fields
+            self.len = 0 # 32/36/40 depends on the type of src and dst
+
+        @classmethod
+        def parser(cls, buf):
+            oxms = len(buf) - 1
+            fmt = cls._fmt_str + str(oxms) + 's'
+
+            try:
+                field_num, oxm_buf = struct.unpack(fmt, buf)
+                fields = []
+                for i in range(field_num):
+                    (n, offset) = ofp.oxm_parse_header(oxm_buf, 0)
+                    fields.append(ofp.oxm_to_user_header(n))
+                    oxm_buf = oxm_buf[offset:]
+                return cls(field_num, fields)
+            except Exception as e:
+                print(e)
+
+        def action_to_str(self):
+            fields = ''
+            if self.fields:
+                fields = ','.join(["'%s'" % x for x in self.fields])
+            return "NOVI_HASH_FIELD_SYM: {'field_num': %d, 'fields': [%s]}" % (self.field_num, fields)
+
+        def serialize_body(self):
+            oxm_buffer = bytearray()
+            for field in self.fields:
+                field_buf = bytearray()
+                n = ofp.oxm_from_user_header(field)
+                ofp.oxm_serialize_header(n, field_buf, 0)
+                oxm_buffer.extend(field_buf)
+            prefix_len = 13  # type, len, experimenter, customer, reserved, novi_action_type, fields_num,
+            oxm_len = len(oxm_buffer)
+            pad_len = utils.round_up(prefix_len + oxm_len, 8) - prefix_len - oxm_len
+            self.len = prefix_len + oxm_len + pad_len
+
+            buf = bytearray(1 + oxm_len + pad_len)  # 1 for fields_num
+            fmt = self._fmt_str + str(oxm_len) + 's' + str(pad_len) + 'x'
+            try:
+                struct.pack_into(fmt, buf, 0, self.field_num, oxm_buffer)
+            except Exception as e:
+                print(e)
+            return buf
 
     def add_attr(k, v):
         v.__module__ = ofpp.__name__  # Necessary for stringify stuff
@@ -321,7 +374,8 @@ def generate(ofp_name, ofpp_name):
         ('NoviActionPopVxlan', True),
         ('NoviActionPushVxlan', False),
         ('NoviActionCopyField', True),
-        ('NoviActionSwapField', True)
+        ('NoviActionSwapField', True),
+        ('NoviActionHashFieldSym', True)
     ]
     vars = locals()
     for name, register in classes:
