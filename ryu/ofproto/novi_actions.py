@@ -255,6 +255,7 @@ def generate(ofp_name, ofpp_name):
     class NoviActionSwapField(NoviAction):
         _fmt_str_20 = '>HHH2x12s'
         _fmt_str_24 = '>HHH2x16s'
+        _fmt_str_28 = '>HHH2x20s'
         NOVI_ACTION_SWAP_FIELD = 0x0009
         _subtype = NOVI_ACTION_SWAP_FIELD
 
@@ -275,6 +276,8 @@ def generate(ofp_name, ofpp_name):
                     n_bits, src_offset, dst_offset, oxms = struct.unpack(cls._fmt_str_20, buf)
                 elif len(buf) == 24:
                     n_bits, src_offset, dst_offset, oxms = struct.unpack(cls._fmt_str_24, buf)
+                elif len(buf) == 28:
+                    n_bits, src_offset, dst_offset, oxms = struct.unpack(cls._fmt_str_28, buf)
                 else:
                     raise Exception("Unknown buffer")
                 (n, src_size) = ofp.oxm_parse_header(oxms, 0)
@@ -300,12 +303,12 @@ def generate(ofp_name, ofpp_name):
             n = ofp.oxm_from_user_header(self.dst)
             ofp.oxm_serialize_header(n, dst_header, 0)
             src_header.extend(dst_header)
-            if len(src_header) < 12:
+            if len(src_header) != 12:
                 src_header.extend(bytearray(4))
-            sz = struct.calcsize(self._fmt_str_20)
+            sz = struct.calcsize(self._fmt_str_28)
             buf = bytearray(sz)
             try:
-                struct.pack_into(self._fmt_str_20, buf, 0, self.n_bits, self.src_offset, self.dst_offset, src_header)
+                struct.pack_into(self._fmt_str_28, buf, 0, self.n_bits, self.src_offset, self.dst_offset, src_header)
 
             except Exception as e:
                 print(e)
